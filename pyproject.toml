@@ -1,0 +1,57 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+exclude = "tests"
+
+[tool.len8]
+exclude = ["tests", "severn/ux.py"]
+code-length = 88
+
+[tool.coverage.report]
+omit = ["severn/__init__.py", "severn/__main__.py", "severn/types.py", "severn/ux.py"]
+exclude_lines = [
+    "if t.TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "return NotImplemented",
+    "except KeyboardInterrupt as exc",
+]
+
+[tool.ruff]
+extend-select = [
+    "B",
+    "BLE",
+    "C4",
+    "ERA",
+    "I",
+    "ICN",
+    "INP",
+    "ISC",
+    "N",
+    "NPY",
+    "PGH",
+    "PIE",
+    "PTH",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "T20",
+    "TCH",
+    "TID",
+    "YTT",
+]
+ignore = ["B905", "E402", "N818", "S101"]
+show-fixes = true
+target-version = "py38"
