@@ -1,0 +1,12 @@
+name: Documentation request
+description: Request a change to the documentation.
+labels: ["documentation"]
+
+body:
+  - type: textarea
+    attributes:
+      label: Describe your proposed change
+      description: A detailed description of the change you would like to see.
+      placeholder: "Example: Properties X, Y, and Z of class T are missing from the docs."
+    validations:
+      required: true

@@ -1,0 +1,44 @@
+name: Feature request
+description: Request a new feature or improvement
+labels: ["feature"]
+
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A description of what you want implemented.
+      placeholder: "Example: The ability to install projects in editable mode."
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Why?
+      description: The reason you want this implemented.
+      placeholder: "Example: It will make iterating during development faster."
+    validations:
+      required: true
+
+  - type: textarea
+    id: ideal-implementation
+    attributes:
+      label: Ideal implementation
+      description: How you think this should be implemented, if you have an idea.
+      placeholder: "Example: A `-e` command line flag that enables editable mode."
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional information
+      description: If there's anything else you feel is relevant, include it here.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Make sure all the following statements are true before continuing.
+      options:
+        - label: I have searched the issue tracker for duplicate issues and couldn't find any. If this is a follow-up issue, I have specified as such.
+          required: true
