@@ -1,0 +1,20 @@
+name: Other
+description: Issues that don't fall into another category.
+
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear and concise explanation of your issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional information
+      description: Any additional context surrounding this issue.
+    validations:
+      required: false
+
