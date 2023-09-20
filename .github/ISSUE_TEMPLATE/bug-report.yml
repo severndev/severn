@@ -38,8 +38,7 @@ body:
     id: version
     attributes:
       label: Severn version
-      #description: The version of Severn you're using. Obtainable though `python -m severn`.
-      description: The version of Severn you're using.
+      description: The version of Severn you're using. Obtainable through `python -m severn`.
       placeholder: "1.0.0"
     validations:
       required: true
