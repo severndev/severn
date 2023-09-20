@@ -35,13 +35,6 @@ body:
       description: If there's anything else you feel is relevant, include it here.
 
   - type: checkboxes
-    id: contribution
-    attributes:
-      label: Contribution
-      options:
-        - label: I wish to contribute this feature.
-
-  - type: checkboxes
     id: checklist
     attributes:
       label: Checklist
@@ -49,4 +42,3 @@ body:
       options:
         - label: I have searched the issue tracker for duplicate issues and couldn't find any. If this is a follow-up issue, I have specified as such.
           required: true
-

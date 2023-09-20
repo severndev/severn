@@ -1,5 +1,5 @@
 name: Documentation request
-description: Request an change to the documentation.
+description: Request a change to the documentation.
 labels: ["documentation"]
 
 body:
@@ -10,4 +10,3 @@ body:
       placeholder: "Example: Properties X, Y, and Z of class T are missing from the docs."
     validations:
       required: true
-

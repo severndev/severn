@@ -21,7 +21,7 @@ body:
     attributes:
       label: Expected behaviour
       description: What should have happened.
-      placeholder: "Example: The validation should have caught the issue."
+      placeholder: "Example: The specified packages should have been installed."
     validations:
       required: true
 
@@ -30,15 +30,16 @@ body:
     attributes:
       label: Current behaviour
       description: What actually happened. If you were given an error, please provide it here.
-      placeholder: "Example: I received an `APIError`."
+      placeholder: "Example: I received the following error: ..."
     validations:
       required: true
 
   - type: textarea
     id: version
     attributes:
-      label: severn version
-      description: The version of severn you're using. Obtainable though `python -m severn`.
+      label: Severn version
+      #description: The version of Severn you're using. Obtainable though `python -m severn`.
+      description: The version of Severn you're using.
       placeholder: "1.0.0"
     validations:
       required: true
@@ -47,7 +48,13 @@ body:
     id: system-info
     attributes:
       label: Extra information
-      description: The output from the Information section of `python -m severn`.
+      #description: The output from the Information section of `python -m severn`.
+      #placeholder: |
+      #  Information:
+      #    • Python version: 3.11.5 (CPython)
+      #    • Operating system: Linux (6.1.52-1-lts)
+      #    • Installed in: /home/jonx/projects/py/severn/severn
+      description: General system information.
       placeholder: |
         Information:
           • Python version: 3.11.5 (CPython)
@@ -70,4 +77,3 @@ body:
       options:
         - label: I have searched the issue tracker for duplicate issues and couldn't find any. If this is a follow-up issue, I have specified as such.
           required: true
-

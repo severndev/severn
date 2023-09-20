@@ -17,4 +17,3 @@ body:
       description: Any additional context surrounding this issue.
     validations:
       required: false
-
