@@ -1,0 +1,8 @@
+# Meta
+-e .
+-r ./base.txt
+-r ./nox.txt
+-r ./types.txt
+
+# Extras
+nox==2023.4.22
