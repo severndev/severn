@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys
-from collections import defaultdict
+import typing as t
 from pathlib import Path
 
 import setuptools
@@ -44,7 +44,7 @@ def parse_requirements(path: str) -> list[str]:
 
 
 with Path("severn/__init__.py").open() as f:
-    attrs = defaultdict(str)
+    attrs: t.Dict[str, str] = {}
 
     for line in f:
         if not line.startswith("__"):
