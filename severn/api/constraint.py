@@ -151,7 +151,7 @@ class Constraint(Representable):
     @classmethod
     def from_string(cls, raw: str, /) -> "Constraint":
         if not (match := CONSTRAINT_PATTERN.match(raw)):
-            raise ValueError("invalid version string")
+            raise ValueError("version string must conform to PEP 440")
 
         version = match.groupdict()
         raw_release = version["release"]

@@ -26,7 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import logging
 import re
+import warnings
 from pathlib import Path
 from typing import List, Union
 
@@ -49,6 +51,8 @@ REQUIREMENT_PATTERN = re.compile(
     re.VERBOSE,
 )
 
+_log = logging.getLogger(__name__)
+
 
 class RequirementsFile:
     def __init__(self, path: Union[str, Path]) -> None:
@@ -63,7 +67,9 @@ class RequirementsFile:
     def parse(self) -> List[Dependency]:
         dependencies: List[Dependency] = []
 
-        for line in self.path.read_text().replace(" ", "").splitlines():
+        for i, line in enumerate(
+            self.path.read_text().replace(" ", "").splitlines(), start=1
+        ):
             if not line or line.startswith("#"):
                 # This is quicker and more accurate than making the
                 # regex handle it.
@@ -74,7 +80,14 @@ class RequirementsFile:
 
             attrs = match.groupdict()
 
+            for k in ("con_file", "editable", "wheel", "dist_url", "package_url"):
+                if attrs[k]:
+                    warnings.warn(
+                        f"{k!r} not supported ({self.path}:{i})", stacklevel=4
+                    )
+
             if req_file := attrs["req_file"]:
+                _log.info("Scanning nested requirements file (%s)", req_file)
                 dependencies.extend(RequirementsFile(req_file).parse())
                 continue
 
@@ -89,7 +102,7 @@ class RequirementsFile:
                     env_markers[match.group(1)] = match.group(2)
 
             dependencies.append(
-                Dependency(
+                d := Dependency(
                     name=attrs["package"],
                     constraints=v.split(",") if (v := attrs["version"]) else None,
                     env_markers=env_markers,
@@ -104,4 +117,13 @@ class RequirementsFile:
                 )
             )
 
+            if _log.isEnabledFor(logging.DEBUG):
+                _log.debug(
+                    "Found dependency %r (constraints = %r) in %s",
+                    d.name,
+                    [c.as_tuple for c in d.constraints],
+                    self.path,
+                )
+
+        _log.info("Found %i dependencies in %s", len(dependencies), self.path)
         return dependencies
