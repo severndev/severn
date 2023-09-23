@@ -44,9 +44,10 @@ def get_modules() -> t.List[str]:
 
 def get_alls() -> t.Tuple[t.Set[str], t.Set[str]]:
     modules = get_modules()
-    return {item for module in modules for item in severn.__dict__[module].__all__}, {
-        i for i in severn.__all__ if i not in modules
-    }
+    return (
+        {item for module in modules for item in severn.__dict__[module].__all__},
+        {i for i in severn.__all__ if i not in modules},
+    )
 
 
 def validate_alls() -> None:

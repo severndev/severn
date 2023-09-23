@@ -159,3 +159,4 @@ def spelling(session: nox.Session) -> None:
 @install(rfiles=["types"])
 def typing(session: nox.Session) -> None:
     session.run("mypy", *sp(PROJECT_DIR, SETUP_FILE))
+    session.run("pyright", *sp(PROJECT_DIR, SETUP_FILE))
