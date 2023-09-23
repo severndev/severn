@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+__all__ = ()
+
 __productname__ = "severn"
 __version__ = "0.1.0"
 __description__ = "Your new end-to-end project management system."
