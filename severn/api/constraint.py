@@ -61,7 +61,7 @@ from severn.abc import Representable
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 CONSTRAINT_PATTERN = re.compile(
     r"""
-    (?P<comparitor>[<>~=!@]{1,2})                         # comparitor
+    (?P<comparator>[<>~=!@]{1,2})                         # comparator
     (?:
         (?:(?P<epoch>[0-9]+)!)?                           # epoch
         (?P<release>[0-9]+(?:\.[0-9*]+)*)                 # release segment
@@ -98,7 +98,7 @@ MAX_VERSION = float("inf")
 class Constraint(Representable):
     def __init__(
         self,
-        comparitor: str,
+        comparator: str,
         *,
         epoch: Optional[int] = None,
         major: int = 0,
@@ -112,7 +112,7 @@ class Constraint(Representable):
         dev: Optional[int] = None,
         release_specificity: int = 3,
     ) -> None:
-        self.comparitor = comparitor
+        self.comparator = comparator
         self.epoch = epoch or 0
         self.major = major
         self.minor = minor or 0
@@ -124,7 +124,7 @@ class Constraint(Representable):
         self.post2 = post2 or MAX_VERSION
         self.dev = dev or MAX_VERSION
 
-        COMPARITOR_MAPPING = {
+        comparator_mapping = {
             "==": self.as_tuple.__eq__,
             "!=": self.as_tuple.__ne__,
             ">": self.as_tuple.__lt__,
@@ -133,7 +133,7 @@ class Constraint(Representable):
             "<=": self.as_tuple.__ge__,
             "~=": partial(self._fuzzy_callback, release_specificity, self.as_tuple),
         }
-        self._cfunc = COMPARITOR_MAPPING[comparitor]
+        self._cfunc = comparator_mapping[comparator]
 
     @property
     def as_tuple(self) -> Tuple[Union[int, float], ...]:
@@ -159,7 +159,7 @@ class Constraint(Representable):
         raw_release = version["release"]
 
         if "*" in raw_release:
-            version["comparitor"] = "~="
+            version["comparator"] = "~="
             raw_release = raw_release.replace("*", "0")
 
         release = [int(v) for v in raw_release.split(".")]
@@ -174,7 +174,7 @@ class Constraint(Representable):
         )
 
         return cls(
-            version["comparitor"],
+            version["comparator"],
             epoch=maybe_int(version["epoch"]),
             major=release[0],
             minor=release[1],

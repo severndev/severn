@@ -33,7 +33,7 @@ from typing import Tuple
 
 
 class Representable(metaclass=abc.ABCMeta):
-    __slots__: Tuple[str, ...]
+    __slots__: Tuple[str, ...] = ()
 
     def __repr__(self) -> str:
         if slots := getattr(self, "__slots__", None):
