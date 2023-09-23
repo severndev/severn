@@ -26,11 +26,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+__all__ = ("RequirementsFile",)
+
 import logging
 import re
 import warnings
 from pathlib import Path
-from typing import List, Union
+from typing import Any, List, Union
 
 from severn.api.dependency import Dependency
 
@@ -61,7 +63,7 @@ class RequirementsFile:
     def __enter__(self) -> "RequirementsFile":
         return self
 
-    def __exit__(self, *_) -> None:
+    def __exit__(self, *_: Any) -> None:
         ...
 
     def parse(self) -> List[Dependency]:

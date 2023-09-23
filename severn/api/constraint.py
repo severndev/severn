@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+__all__ = ("Constraint",)
+
 import re
 from functools import partial
 from typing import Optional, Tuple, Union
@@ -197,4 +199,5 @@ class Constraint(Representable):
 
     def likes_version(self, version: str, /) -> bool:
         other = Constraint.from_string(f"=={version}")
-        return self._cfunc(other.as_tuple)
+        # Pyright figured this out, Mypy couldn't. Such a shame.
+        return self._cfunc(other.as_tuple)  # type: ignore[no-any-return, operator]

@@ -25,23 +25,3 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-__all__ = ("Representable",)
-
-import abc
-from typing import Tuple
-
-
-class Representable(metaclass=abc.ABCMeta):
-    __slots__: Tuple[str, ...]
-
-    def __repr__(self) -> str:
-        if slots := getattr(self, "__slots__", None):
-            parts = (
-                f"{s!r}={getattr(self, s)}" for s in slots if not s.startswith("_")
-            )
-        else:
-            parts = (
-                f"{k}={v!r}" for k, v in self.__dict__.items() if not k.startswith("_")
-            )
-        return f"{self.__class__.__name__}({', '.join(parts)})"
