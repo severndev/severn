@@ -121,7 +121,17 @@ class Constraint(Representable):
         self.post1 = post1 or MAX_VERSION
         self.post2 = post2 or MAX_VERSION
         self.dev = dev or MAX_VERSION
-        self._release_specificity = release_specificity
+
+        COMPARITOR_MAPPING = {
+            "==": self.as_tuple.__eq__,
+            "!=": self.as_tuple.__ne__,
+            ">": self.as_tuple.__lt__,
+            ">=": self.as_tuple.__le__,
+            "<": self.as_tuple.__gt__,
+            "<=": self.as_tuple.__ge__,
+            "~=": partial(self._fuzzy_callback, release_specificity, self.as_tuple),
+        }
+        self._cfunc = COMPARITOR_MAPPING[comparitor]
 
     @property
     def as_tuple(self) -> Tuple[Union[int, float], ...]:
@@ -174,28 +184,17 @@ class Constraint(Representable):
             **kwargs,
         )
 
-    def _tilde_callback(
+    def _fuzzy_callback(
         self,
+        specificity: int,
         constraint: Tuple[Union[int, float], ...],
         requirement: Tuple[Union[int, float], ...],
     ) -> bool:
-        rs = self._release_specificity
-        return constraint[:rs] == requirement[:rs] and requirement[rs] >= constraint[rs]
+        return (
+            constraint[:specificity] == requirement[:specificity]
+            and requirement[specificity] >= constraint[specificity]
+        )
 
     def likes_version(self, version: str, /) -> bool:
         other = Constraint.from_string(f"=={version}")
-        COMPARITOR_MAPPING = {
-            "==": self.as_tuple.__eq__,
-            "!=": self.as_tuple.__ne__,
-            ">": self.as_tuple.__lt__,
-            ">=": self.as_tuple.__le__,
-            "<": self.as_tuple.__gt__,
-            "<=": self.as_tuple.__ge__,
-            "~=": partial(self._tilde_callback, self.as_tuple),
-        }
-        return COMPARITOR_MAPPING[self.comparitor](other.as_tuple)
-
-
-if __name__ == "__main__":
-    c = Constraint(">=2.8.6")
-    print(repr(c))
+        return self._cfunc(other.as_tuple)
