@@ -6,3 +6,4 @@
 
 # Extras
 nox==2023.4.22
+sourcery>=1.9,<2.0
