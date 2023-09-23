@@ -4,16 +4,16 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
+#     1. Redistributions of source code must retain the above copyright notice, this
+#        list of conditions and the following disclaimer.
 #
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
+#     2. Redistributions in binary form must reproduce the above copyright notice,
+#        this list of conditions and the following disclaimer in the documentation
+#        and/or other materials provided with the distribution.
 #
-# 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
+#     3. Neither the name of the copyright holder nor the names of its
+#        contributors may be used to endorse or promote products derived from
+#        this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,9 +26,14 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-### Except for CONSTRAINT_PATTERN, a variant of VERSION_PATTERN,
-### which is licensed as follows.
+import re
+from functools import partial
+from typing import Optional, Tuple, Union
 
+from severn.abc import Representable
+
+# Based on packaging.version._VERSION_PATTERN, licensed as:
+#
 # Copyright (c) Donald Stufft and individual contributors.
 # All rights reserved.
 #
@@ -52,28 +57,6 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-import re
-from functools import partial
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
-
-REQUIREMENT_PATTERN = re.compile(
-    r"""
-    (?:-r(?P<req_file>.*))?         # Requirements file
-    (?:-c(?P<con_file>.*))?         # Constraints file
-    (?:-e(?P<editable>.*))?         # Editable
-    (?P<wheel>(?:./).*)?            # Path to local distribution
-    (?P<dist_url>(?:https?://).*)?  # URL to hosted distribution
-    (?P<package>[^\[<>~=!@;]+)?     # The name of the dependency
-    (?:\[(?P<extras>.*)\])?         # Any extras the dependency specifies
-    (?:@(?P<package_url>.*))?       # The URL to a particular package's distribution
-    (?P<version>[^;]*)?             # Constraint string
-    (?:;(?P<env_markers>.*))?       # Environment markers
-    """,
-    re.VERBOSE,
-)
-
 CONSTRAINT_PATTERN = re.compile(
     r"""
     (?P<comparitor>[<>~=!@]{1,2})                         # comparitor
@@ -107,11 +90,10 @@ CONSTRAINT_PATTERN = re.compile(
     """,
     re.VERBOSE,
 )
-
 MAX_VERSION = float("inf")
 
 
-class Constraint:
+class Constraint(Representable):
     def __init__(
         self,
         comparitor: str,
@@ -214,69 +196,6 @@ class Constraint:
         return COMPARITOR_MAPPING[self.comparitor](other.as_tuple)
 
 
-class Dependency:
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        *,
-        constraints: Optional[List[str]] = None,
-        env_markers: Optional[List[str]] = None,
-        extras: Optional[List[str]] = None,
-        location: Optional[Union[str, Path]] = None,
-        editable: bool = False,
-    ) -> None:
-        self.name = name
-        self.constraints = (
-            [Constraint.from_string(c) for c in constraints] if constraints else None
-        )
-        self.env_markers = env_markers  # TODO: Convert to a dict.
-        self.extras = extras
-        self.location = location
-        self.editable = editable
-
-    def likes_version(self, version: str) -> bool:
-        return (
-            all(c.likes_version(version) for c in self.constraints)
-            if self.constraints
-            else True
-        )
-
-
-class RequirementsFile:
-    def __init__(self, path: Union[str, Path]) -> None:
-        self.path = path if isinstance(path, Path) else Path(path)
-
-    def parse(self) -> List[Dependency]:
-        dependencies: List[Dependency] = []
-
-        for line in self.path.read_text().replace(" ", "").splitlines():
-            if not line or line.startswith("#"):
-                # This is quicker and more accurate than making the
-                # regex handle it.
-                continue
-
-            if not (match := REQUIREMENT_PATTERN.match(line)):
-                continue
-
-            attrs = match.groupdict()
-
-            if req_file := attrs["req_file"]:
-                dependencies.extend(RequirementsFile(req_file).parse())
-
-            dependencies.append(
-                Dependency(
-                    name=attrs["package"],
-                    constraints=v.split(",") if (v := attrs["version"]) else None,
-                    env_markers=em.split(",") if (em := attrs["env_markers"]) else None,
-                    extras=e.split(",") if (e := attrs["extras"]) else None,
-                    location=(
-                        attrs["editable"]
-                        or attrs["wheel"]
-                        or attrs["dist_url"]
-                        or attrs["package_url"]
-                    ),
-                    editable=bool(attrs["editable"]),
-                )
-            )
-
-        return dependencies
+if __name__ == "__main__":
+    c = Constraint(">=2.8.6")
+    print(repr(c))
