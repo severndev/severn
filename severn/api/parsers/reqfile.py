@@ -34,6 +34,7 @@ import warnings
 from pathlib import Path
 from typing import Any, List, Union
 
+from severn.abc import Representable
 from severn.api.dependency import Dependency
 
 ENV_MARKER_PATTERN = re.compile(r"([^<>~=!]+)(.*)")
@@ -56,7 +57,9 @@ REQUIREMENT_PATTERN = re.compile(
 _log = logging.getLogger(__name__)
 
 
-class RequirementsFile:
+class RequirementsFile(Representable):
+    __slots__ = ("path",)
+
     def __init__(self, path: Union[str, Path]) -> None:
         self.path = path if isinstance(path, Path) else Path(path)
 
