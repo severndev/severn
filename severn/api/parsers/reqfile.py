@@ -34,8 +34,11 @@ import warnings
 from pathlib import Path
 from typing import Any, List, Union
 
+import aiofiles
+
 from severn.abc import Representable
 from severn.api.dependency import Dependency
+from severn.api.utils import aenumerate
 
 ENV_MARKER_PATTERN = re.compile(r"([^<>~=!]+)(.*)")
 REQUIREMENT_PATTERN = re.compile(
@@ -63,72 +66,71 @@ class RequirementsFile(Representable):
     def __init__(self, path: Union[str, Path]) -> None:
         self.path = path if isinstance(path, Path) else Path(path)
 
-    def __enter__(self) -> "RequirementsFile":
+    async def __aenter__(self) -> "RequirementsFile":
         return self
 
-    def __exit__(self, *_: Any) -> None:
+    async def __aexit__(self, *_: Any) -> None:
         ...
 
-    def parse(self) -> List[Dependency]:
+    async def parse(self) -> List[Dependency]:
         dependencies: List[Dependency] = []
 
-        for i, line in enumerate(
-            self.path.read_text().replace(" ", "").splitlines(), start=1
-        ):
-            if not line or line.startswith("#"):
-                # This is quicker and more accurate than making the
-                # regex handle it.
-                continue
+        async with aiofiles.open(self.path) as f:
+            async for i, line in aenumerate(f, start=1):
+                if not line or line.startswith("#"):
+                    # This is quicker and more accurate than making the
+                    # regex handle it.
+                    continue
 
-            if not (match := REQUIREMENT_PATTERN.match(line)):
-                continue
+                if not (match := REQUIREMENT_PATTERN.match(line)):
+                    continue
 
-            attrs = match.groupdict()
+                attrs = match.groupdict()
 
-            for k in ("con_file", "editable", "wheel", "dist_url", "package_url"):
-                if attrs[k]:
-                    warnings.warn(
-                        f"{k!r} not supported ({self.path}:{i})", stacklevel=4
+                for k in ("con_file", "editable", "wheel", "dist_url", "package_url"):
+                    if attrs[k]:
+                        warnings.warn(
+                            f"{k!r} not supported ({self.path}:{i})", stacklevel=4
+                        )
+
+                if req_file := attrs["req_file"]:
+                    _log.info("Scanning nested requirements file (%s)", req_file)
+                    dependencies.extend(await RequirementsFile(req_file).parse())
+                    continue
+
+                env_markers = {}
+                if attrs["env_markers"]:
+                    for marker in attrs["env_markers"].split(","):
+                        marker = marker.replace("'", "").replace('"', "")
+
+                        if not (match := ENV_MARKER_PATTERN.match(marker)):
+                            continue
+
+                        env_markers[match.group(1)] = match.group(2)
+
+                dependencies.append(
+                    d := Dependency(
+                        name=attrs["package"],
+                        constraints=v.split(",") if (v := attrs["version"]) else None,
+                        env_markers=env_markers,
+                        extras=e.split(",") if (e := attrs["extras"]) else None,
+                        location=(
+                            attrs["editable"]
+                            or attrs["wheel"]
+                            or attrs["dist_url"]
+                            or attrs["package_url"]
+                        ),
+                        editable=bool(attrs["editable"]),
                     )
-
-            if req_file := attrs["req_file"]:
-                _log.info("Scanning nested requirements file (%s)", req_file)
-                dependencies.extend(RequirementsFile(req_file).parse())
-                continue
-
-            env_markers = {}
-            if attrs["env_markers"]:
-                for marker in attrs["env_markers"].split(","):
-                    marker = marker.replace("'", "").replace('"', "")
-
-                    if not (match := ENV_MARKER_PATTERN.match(marker)):
-                        continue
-
-                    env_markers[match.group(1)] = match.group(2)
-
-            dependencies.append(
-                d := Dependency(
-                    name=attrs["package"],
-                    constraints=v.split(",") if (v := attrs["version"]) else None,
-                    env_markers=env_markers,
-                    extras=e.split(",") if (e := attrs["extras"]) else None,
-                    location=(
-                        attrs["editable"]
-                        or attrs["wheel"]
-                        or attrs["dist_url"]
-                        or attrs["package_url"]
-                    ),
-                    editable=bool(attrs["editable"]),
                 )
-            )
 
-            if _log.isEnabledFor(logging.DEBUG):
-                _log.debug(
-                    "Found dependency %r (constraints = %r) in %s",
-                    d.name,
-                    [c.as_tuple for c in d.constraints],
-                    self.path,
-                )
+                if _log.isEnabledFor(logging.DEBUG):
+                    _log.debug(
+                        "Found dependency %r (constraints = %r) in %s",
+                        d.name,
+                        [c.as_tuple for c in d.constraints],
+                        self.path,
+                    )
 
         _log.info("Found %i dependencies in %s", len(dependencies), self.path)
         return dependencies
