@@ -87,6 +87,23 @@ def sp(*paths: Path) -> list[str]:
 
 @nox.session(reuse_venv=True)
 @install(meta=True)
+def tests(session: nox.Session) -> None:
+    session.run(
+        "coverage",
+        "run",
+        "--source",
+        PROJECT_NAME,
+        "--omit",
+        "tests/*",
+        "-m",
+        "pytest",
+        "--log-level=1",
+    )
+    session.run("coverage", "report", "-m")
+
+
+@nox.session(reuse_venv=True)
+@install(meta=True)
 def alls(session: nox.Session) -> None:
     session.run("python", "scripts/alls.py")
 

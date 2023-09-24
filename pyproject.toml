@@ -13,13 +13,12 @@ exclude = "tests"
 [tool.pyright]
 typeCheckingMode = "strict"
 
-[tool.len8]
-exclude = ["tests", "severn/ux.py"]
-code-length = 88
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.coverage.report]
 omit = [
-    "severn/__init__.py",
+    "**/__init__.py",
     "severn/__main__.py",
     "severn/types.py",
     "severn/ux.py",
