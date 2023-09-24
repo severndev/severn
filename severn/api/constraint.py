@@ -117,12 +117,12 @@ class Constraint(Representable):
         self.major = major
         self.minor = minor or 0
         self.patch = patch or 0
-        self.alpha = a or MAX_VERSION
-        self.beta = b or MAX_VERSION
-        self.rc = rc or MAX_VERSION
-        self.post1 = post1 or MAX_VERSION
-        self.post2 = post2 or MAX_VERSION
-        self.dev = dev or MAX_VERSION
+        self.alpha = a if a is not None else MAX_VERSION
+        self.beta = b if b is not None else MAX_VERSION
+        self.rc = rc if rc is not None else MAX_VERSION
+        self.post1 = post1 if post1 is not None else MAX_VERSION
+        self.post2 = post2 if post2 is not None else MAX_VERSION
+        self.dev = dev if dev is not None else MAX_VERSION
 
         comparator_mapping = {
             "==": self.as_tuple.__eq__,
@@ -153,7 +153,7 @@ class Constraint(Representable):
     @classmethod
     def from_string(cls, raw: str, /) -> "Constraint":
         if not (match := CONSTRAINT_PATTERN.match(raw)):
-            raise ValueError("version string must conform to PEP 440")
+            raise ValueError("version string must conform to SemVer")
 
         version = match.groupdict()
         raw_release = version["release"]
@@ -167,7 +167,7 @@ class Constraint(Representable):
         release += [0] * (3 - n_parts)
 
         def maybe_int(value: Optional[str]) -> Optional[int]:
-            return int(value) if value else None
+            return int(value) if value is not None else None
 
         kwargs = (
             {version["pre_l"]: maybe_int(version["pre_n"])} if version["pre"] else {}
@@ -193,8 +193,8 @@ class Constraint(Representable):
         requirement: Tuple[Union[int, float], ...],
     ) -> bool:
         return (
-            constraint[:specificity] == requirement[:specificity]
-            and requirement[specificity] >= constraint[specificity]
+            requirement >= constraint
+            and requirement[:specificity] == constraint[:specificity]
         )
 
     def likes_version(self, version: str, /) -> bool:

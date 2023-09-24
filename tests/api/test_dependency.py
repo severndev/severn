@@ -26,37 +26,35 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__all__ = ("Dependency",)
-
-from pathlib import Path
-from typing import Dict, List, Optional, Union
-
-from severn.abc import Representable
-from severn.api.constraint import Constraint
+from severn.api.dependency import Dependency
 
 
-class Dependency(Representable):
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        *,
-        constraints: Optional[List[str]] = None,
-        env_markers: Optional[Dict[str, str]] = None,
-        extras: Optional[List[str]] = None,
-        location: Optional[Union[str, Path]] = None,
-        editable: bool = False,
-    ) -> None:
-        self.name = name
-        self.constraints = (
-            [Constraint.from_string(c) for c in constraints] if constraints else []
-        )
-        self.env_markers = env_markers or {}
-        self.extras = extras
-        self.location = location
-        self.editable = editable
+def test_defaults():
+    d = Dependency()
+    assert d.name is None
+    assert d.constraints == []
+    assert d.env_markers == {}
+    assert d.extras is None
+    assert d.location is None
+    assert d.editable is False
 
-    def __str__(self) -> str:
-        return self.name or "undefined"
 
-    def likes_version(self, version: str) -> bool:
-        return all(c.likes_version(version) for c in self.constraints)
+def test_str(dependency: Dependency):
+    assert str(dependency) == "rickroll"
+
+
+def test_str_no_name():
+    d = Dependency()
+    assert str(d) == "undefined"
+
+
+def test_likes_version_all_checks_fail(dependency: Dependency):
+    assert not dependency.likes_version("1.3.6")
+
+
+def test_likes_version_single_check_fails(dependency: Dependency):
+    assert not dependency.likes_version("2.8.1")
+
+
+def test_likes_version_both_checks_pass(dependency: Dependency):
+    assert dependency.likes_version("2.8.3")

@@ -26,37 +26,50 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__all__ = ("Dependency",)
-
-from pathlib import Path
-from typing import Dict, List, Optional, Union
-
 from severn.abc import Representable
-from severn.api.constraint import Constraint
 
 
-class Dependency(Representable):
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        *,
-        constraints: Optional[List[str]] = None,
-        env_markers: Optional[Dict[str, str]] = None,
-        extras: Optional[List[str]] = None,
-        location: Optional[Union[str, Path]] = None,
-        editable: bool = False,
-    ) -> None:
-        self.name = name
-        self.constraints = (
-            [Constraint.from_string(c) for c in constraints] if constraints else []
-        )
-        self.env_markers = env_markers or {}
-        self.extras = extras
-        self.location = location
-        self.editable = editable
+def test_representable_no_slots():
+    class Test(Representable):
+        def __init__(self):
+            self.x = 0
+            self.y = 5
 
-    def __str__(self) -> str:
-        return self.name or "undefined"
+    t = Test()
+    assert repr(t) == "Test(x=0, y=5)"
 
-    def likes_version(self, version: str) -> bool:
-        return all(c.likes_version(version) for c in self.constraints)
+
+def test_representable_no_slots_ignore_private():
+    class Test(Representable):
+        def __init__(self):
+            self.x = 0
+            self.y = 5
+            self._z = 10
+
+    t = Test()
+    assert repr(t) == "Test(x=0, y=5)"
+
+
+def test_representable_slots():
+    class Test(Representable):
+        __slots__ = ("x", "y")
+
+        def __init__(self):
+            self.x = "never gonna"
+            self.y = "give you up"
+
+    t = Test()
+    assert repr(t) == "Test(x='never gonna', y='give you up')"
+
+
+def test_representable_slots_ignore_private():
+    class Test(Representable):
+        __slots__ = ("x", "y", "_z")
+
+        def __init__(self):
+            self.x = "never gonna"
+            self.y = "give you up"
+            self._z = "sandstorm"
+
+    t = Test()
+    assert repr(t) == "Test(x='never gonna', y='give you up')"

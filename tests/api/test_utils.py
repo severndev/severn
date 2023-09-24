@@ -26,37 +26,21 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__all__ = ("Dependency",)
+from typing import List
 
-from pathlib import Path
-from typing import Dict, List, Optional, Union
-
-from severn.abc import Representable
-from severn.api.constraint import Constraint
+from severn.api.utils import aenumerate
 
 
-class Dependency(Representable):
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        *,
-        constraints: Optional[List[str]] = None,
-        env_markers: Optional[Dict[str, str]] = None,
-        extras: Optional[List[str]] = None,
-        location: Optional[Union[str, Path]] = None,
-        editable: bool = False,
-    ) -> None:
-        self.name = name
-        self.constraints = (
-            [Constraint.from_string(c) for c in constraints] if constraints else []
-        )
-        self.env_markers = env_markers or {}
-        self.extras = extras
-        self.location = location
-        self.editable = editable
+async def aiterator(seq: List[str]):
+    for i in seq:
+        yield i
 
-    def __str__(self) -> str:
-        return self.name or "undefined"
 
-    def likes_version(self, version: str) -> bool:
-        return all(c.likes_version(version) for c in self.constraints)
+async def test_aenumerate():
+    upper: List[str] = []
+
+    async for i, text in aenumerate(aiterator(["never", "gonna", "give", "you", "up"])):
+        assert 0 <= i <= 4
+        upper.append(text.upper())
+
+    assert upper == ["NEVER", "GONNA", "GIVE", "YOU", "UP"]

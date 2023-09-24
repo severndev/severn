@@ -82,16 +82,29 @@ class RequirementsFile(Representable):
                     # regex handle it.
                     continue
 
+                line = line.replace(" ", "")
+
                 if not (match := REQUIREMENT_PATTERN.match(line)):
                     continue
 
                 attrs = match.groupdict()
 
-                for k in ("con_file", "editable", "wheel", "dist_url", "package_url"):
-                    if attrs[k]:
-                        warnings.warn(
-                            f"{k!r} not supported ({self.path}:{i})", stacklevel=4
-                        )
+                if unsupported := [
+                    k
+                    for k in (
+                        "con_file",
+                        "editable",
+                        "wheel",
+                        "dist_url",
+                        "package_url",
+                    )
+                    if attrs[k]
+                ]:
+                    warnings.warn(
+                        f"{unsupported[0]!r} not supported ({self.path}:{i})",
+                        stacklevel=4,
+                    )
+                    continue
 
                 if req_file := attrs["req_file"]:
                     _log.info("Scanning nested requirements file (%s)", req_file)

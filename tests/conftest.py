@@ -26,37 +26,33 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__all__ = ("Dependency",)
+import pytest
 
-from pathlib import Path
-from typing import Dict, List, Optional, Union
-
-from severn.abc import Representable
 from severn.api.constraint import Constraint
+from severn.api.dependency import Dependency
+from severn.api.parsers.reqfile import RequirementsFile
 
 
-class Dependency(Representable):
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        *,
-        constraints: Optional[List[str]] = None,
-        env_markers: Optional[Dict[str, str]] = None,
-        extras: Optional[List[str]] = None,
-        location: Optional[Union[str, Path]] = None,
-        editable: bool = False,
-    ) -> None:
-        self.name = name
-        self.constraints = (
-            [Constraint.from_string(c) for c in constraints] if constraints else []
-        )
-        self.env_markers = env_markers or {}
-        self.extras = extras
-        self.location = location
-        self.editable = editable
+@pytest.fixture()
+def constraint() -> Constraint:
+    return Constraint(">=", epoch=0, major=2, minor=8, patch=2)
 
-    def __str__(self) -> str:
-        return self.name or "undefined"
 
-    def likes_version(self, version: str) -> bool:
-        return all(c.likes_version(version) for c in self.constraints)
+@pytest.fixture()
+def prerelease_constraint() -> Constraint:
+    return Constraint(">=", epoch=0, major=2, minor=8, patch=2, a=5, post2=3)
+
+
+@pytest.fixture()
+def dependency() -> Dependency:
+    return Dependency(
+        "rickroll",
+        constraints=[">=2.8.2", "==2.8.*"],
+        env_markers={"python_version": ">3.8"},
+        extras=["security"],
+    )
+
+
+@pytest.fixture()
+def reqfile() -> RequirementsFile:
+    return RequirementsFile("rickroll.txt")
