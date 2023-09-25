@@ -27,12 +27,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import warnings
-from math import inf
 from pathlib import Path
 from unittest import mock
 
 import aiofiles
-import pytest
 
 from severn.api.parsers.reqfile import RequirementsFile
 from tests import MockAsyncFile
@@ -81,7 +79,18 @@ async def test_parse_with_constraint(mock_open, reqfile: RequirementsFile):
     deps = await reqfile.parse()
     assert len(deps) == 1
     assert deps[0].name == "docopt"
-    assert deps[0].constraints[0].as_tuple == (0, 0, 6, 1, inf, inf, inf, inf, inf, inf)
+    assert deps[0].constraints[0].as_tuple == (
+        0,
+        0,
+        6,
+        1,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+    )
 
 
 @mock.patch.object(
@@ -93,8 +102,30 @@ async def test_parse_with_extras(mock_open, reqfile: RequirementsFile):
     deps = await reqfile.parse()
     assert len(deps) == 1
     assert deps[0].name == "requests"
-    assert deps[0].constraints[0].as_tuple == (0, 2, 8, 1, inf, inf, inf, inf, inf, inf)
-    assert deps[0].constraints[1].as_tuple == (0, 2, 8, 0, inf, inf, inf, inf, inf, inf)
+    assert deps[0].constraints[0].as_tuple == (
+        0,
+        2,
+        8,
+        1,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+    )
+    assert deps[0].constraints[1].as_tuple == (
+        0,
+        2,
+        8,
+        0,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+        65535,
+    )
     assert deps[0].extras == ["security"]
 
 

@@ -40,7 +40,7 @@ def constraint() -> Constraint:
 
 @pytest.fixture()
 def prerelease_constraint() -> Constraint:
-    return Constraint(">=", epoch=0, major=2, minor=8, patch=2, a=5, post2=3)
+    return Constraint(">=", epoch=0, major=2, minor=8, patch=2, alpha=5, post2=3)
 
 
 @pytest.fixture()

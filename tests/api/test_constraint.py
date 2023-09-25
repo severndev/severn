@@ -26,8 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from math import inf
-
 import pytest
 
 from severn.api.constraint import Constraint
@@ -39,20 +37,31 @@ def test_defaults():
     assert c.major == 0
     assert c.minor == 0
     assert c.patch == 0
-    assert c.alpha == inf
-    assert c.beta == inf
-    assert c.rc == inf
-    assert c.post1 == inf
-    assert c.post2 == inf
-    assert c.dev == inf
+    assert c.alpha == 65535
+    assert c.beta == 65535
+    assert c.rc == 65535
+    assert c.post1 == 65535
+    assert c.post2 == 65535
+    assert c.dev == 65535
 
 
 def test_as_tuple(constraint: Constraint):
-    assert constraint.as_tuple == (0, 2, 8, 2, inf, inf, inf, inf, inf, inf)
+    assert constraint.as_tuple == (0, 2, 8, 2, 65535, 65535, 65535, 65535, 65535, 65535)
 
 
 def test_as_tuple_prerelease(prerelease_constraint: Constraint):
-    assert prerelease_constraint.as_tuple == (0, 2, 8, 2, 5, inf, inf, inf, 3, inf)
+    assert prerelease_constraint.as_tuple == (
+        0,
+        2,
+        8,
+        2,
+        5,
+        65535,
+        65535,
+        65535,
+        3,
+        65535,
+    )
 
 
 def test_from_string(constraint: Constraint):

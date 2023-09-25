@@ -29,10 +29,9 @@
 __all__ = ("Constraint",)
 
 import re
+from dataclasses import KW_ONLY, InitVar, dataclass
 from functools import partial
-from typing import Optional, Tuple, Union
-
-from severn.abc import Representable
+from typing import Optional, Tuple
 
 # Based on packaging.version._VERSION_PATTERN, licensed as:
 #
@@ -92,38 +91,26 @@ CONSTRAINT_PATTERN = re.compile(
     """,
     re.VERBOSE,
 )
-MAX_VERSION = float("inf")
+MAX_VERSION = 0xFFFF
 
 
-class Constraint(Representable):
-    def __init__(
-        self,
-        comparator: str,
-        *,
-        epoch: Optional[int] = None,
-        major: int = 0,
-        minor: Optional[int] = None,
-        patch: Optional[int] = None,
-        a: Optional[int] = None,
-        b: Optional[int] = None,
-        rc: Optional[int] = None,
-        post1: Optional[int] = None,
-        post2: Optional[int] = None,
-        dev: Optional[int] = None,
-        release_specificity: int = 3,
-    ) -> None:
-        self.comparator = comparator
-        self.epoch = epoch or 0
-        self.major = major
-        self.minor = minor or 0
-        self.patch = patch or 0
-        self.alpha = a if a is not None else MAX_VERSION
-        self.beta = b if b is not None else MAX_VERSION
-        self.rc = rc if rc is not None else MAX_VERSION
-        self.post1 = post1 if post1 is not None else MAX_VERSION
-        self.post2 = post2 if post2 is not None else MAX_VERSION
-        self.dev = dev if dev is not None else MAX_VERSION
+@dataclass()
+class Constraint:
+    comparator: str
+    _: KW_ONLY
+    epoch: int = 0
+    major: int = 0
+    minor: int = 0
+    patch: int = 0
+    alpha: int = MAX_VERSION
+    beta: int = MAX_VERSION
+    rc: int = MAX_VERSION
+    post1: int = MAX_VERSION
+    post2: int = MAX_VERSION
+    dev: int = MAX_VERSION
+    release_specificity: InitVar[int] = 3
 
+    def __post_init__(self, release_specificity: int) -> None:
         comparator_mapping = {
             "==": self.as_tuple.__eq__,
             "!=": self.as_tuple.__ne__,
@@ -133,10 +120,10 @@ class Constraint(Representable):
             "<=": self.as_tuple.__ge__,
             "~=": partial(self._fuzzy_callback, release_specificity, self.as_tuple),
         }
-        self._cfunc = comparator_mapping[comparator]
+        self._cfunc = comparator_mapping[self.comparator]
 
     @property
-    def as_tuple(self) -> Tuple[Union[int, float], ...]:
+    def as_tuple(self) -> Tuple[int, ...]:
         return (
             self.epoch,
             self.major,
@@ -166,22 +153,26 @@ class Constraint(Representable):
         n_parts = len(release)
         release += [0] * (3 - n_parts)
 
-        def maybe_int(value: Optional[str]) -> Optional[int]:
-            return int(value) if value is not None else None
+        def safe_int(value: Optional[str], default: int = 0) -> int:
+            return int(value) if value is not None else default
 
+        label_mapping = {"a": "alpha", "b": "beta"}
+        label = version["pre_l"]
         kwargs = (
-            {version["pre_l"]: maybe_int(version["pre_n"])} if version["pre"] else {}
+            {label_mapping.get(label, label): safe_int(version["pre_n"])}
+            if version["pre"]
+            else {}
         )
 
         return cls(
             version["comparator"],
-            epoch=maybe_int(version["epoch"]),
+            epoch=safe_int(version["epoch"]),
             major=release[0],
             minor=release[1],
             patch=release[2],
-            post1=maybe_int(version["post_n1"]),
-            post2=maybe_int(version["post_n2"]),
-            dev=maybe_int(version["dev_n"]),
+            post1=safe_int(version["post_n1"], default=MAX_VERSION),
+            post2=safe_int(version["post_n2"], default=MAX_VERSION),
+            dev=safe_int(version["dev_n"], default=MAX_VERSION),
             release_specificity=n_parts,
             **kwargs,
         )
@@ -189,8 +180,8 @@ class Constraint(Representable):
     def _fuzzy_callback(
         self,
         specificity: int,
-        constraint: Tuple[Union[int, float], ...],
-        requirement: Tuple[Union[int, float], ...],
+        constraint: Tuple[int, ...],
+        requirement: Tuple[int, ...],
     ) -> bool:
         return (
             requirement >= constraint
