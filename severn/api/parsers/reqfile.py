@@ -37,6 +37,7 @@ from typing import Any, List, Union
 import aiofiles
 
 from severn.abc import Representable
+from severn.api.constraint import Constraint
 from severn.api.dependency import Dependency
 from severn.api.utils import aenumerate
 
@@ -77,25 +78,34 @@ class RequirementsFile(Representable):
 
         async with aiofiles.open(self.path) as f:
             async for i, line in aenumerate(f, start=1):
+                line = line.strip()
+
                 if not line or line.startswith("#"):
                     # This is quicker and more accurate than making the
                     # regex handle it.
                     continue
+
+                # TODO: Find a more efficient way of doing this.
+                line = line.replace(" ", "")
 
                 if not (match := REQUIREMENT_PATTERN.match(line)):
                     continue
 
                 attrs = match.groupdict()
 
-                for k in ("con_file", "editable", "wheel", "dist_url", "package_url"):
-                    if attrs[k]:
-                        warnings.warn(
-                            f"{k!r} not supported ({self.path}:{i})", stacklevel=4
-                        )
-
                 if req_file := attrs["req_file"]:
                     _log.info("Scanning nested requirements file (%s)", req_file)
-                    dependencies.extend(await RequirementsFile(req_file).parse())
+                    req_path = Path(req_file)
+                    if not req_path.exists():
+                        req_path = self.path.parent / req_file
+                    dependencies.extend(await RequirementsFile(req_path).parse())
+                    continue
+
+                if not attrs["package"]:
+                    warnings.warn(
+                        f"cannot resolve requirement at {self.path}:{i} -- probably unsupported format",
+                        stacklevel=999,
+                    )
                     continue
 
                 env_markers = {}
@@ -108,12 +118,13 @@ class RequirementsFile(Representable):
 
                         env_markers[match.group(1)] = match.group(2)
 
+                constraints = v.split(",") if (v := attrs["version"]) else []
                 dependencies.append(
                     d := Dependency(
                         name=attrs["package"],
-                        constraints=v.split(",") if (v := attrs["version"]) else None,
+                        constraints=[Constraint.from_string(c) for c in constraints],
                         env_markers=env_markers,
-                        extras=e.split(",") if (e := attrs["extras"]) else None,
+                        extras=e.split(",") if (e := attrs["extras"]) else [],
                         location=(
                             attrs["editable"]
                             or attrs["wheel"]

@@ -28,35 +28,24 @@
 
 __all__ = ("Dependency",)
 
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-from severn.abc import Representable
 from severn.api.constraint import Constraint
 
 
-class Dependency(Representable):
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        *,
-        constraints: Optional[List[str]] = None,
-        env_markers: Optional[Dict[str, str]] = None,
-        extras: Optional[List[str]] = None,
-        location: Optional[Union[str, Path]] = None,
-        editable: bool = False,
-    ) -> None:
-        self.name = name
-        self.constraints = (
-            [Constraint.from_string(c) for c in constraints] if constraints else []
-        )
-        self.env_markers = env_markers
-        self.extras = extras
-        self.location = location
-        self.editable = editable
+@dataclass()
+class Dependency:
+    name: str
+    constraints: List[Constraint] = field(default_factory=list)
+    env_markers: Dict[str, str] = field(default_factory=dict)
+    extras: List[str] = field(default_factory=list)
+    location: Optional[Union[str, Path]] = None
+    editable: bool = False
 
     def __str__(self) -> str:
-        return self.name or "Undefined"
+        return self.name
 
-    def likes_version(self, version: str) -> bool:
+    def likes_version(self, version: str, /) -> bool:
         return all(c.likes_version(version) for c in self.constraints)
