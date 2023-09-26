@@ -38,7 +38,7 @@ class Representable(metaclass=abc.ABCMeta):
     def __repr__(self) -> str:
         if slots := getattr(self, "__slots__", None):
             parts = (
-                f"{s!r}={getattr(self, s)}" for s in slots if not s.startswith("_")
+                f"{s}={getattr(self, s)!r}" for s in slots if not s.startswith("_")
             )
         else:
             parts = (
