@@ -91,7 +91,7 @@ CONSTRAINT_PATTERN = re.compile(
     """,
     re.VERBOSE,
 )
-MAX_VERSION = 0xFFFF
+MAX_VERSION = 0xFFFFFFF
 
 
 @dataclass()
