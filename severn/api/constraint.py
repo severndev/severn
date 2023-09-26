@@ -31,7 +31,7 @@ __all__ = ("Constraint",)
 import re
 from dataclasses import KW_ONLY, InitVar, dataclass
 from functools import partial
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
 # Based on packaging.version._VERSION_PATTERN, licensed as:
 #

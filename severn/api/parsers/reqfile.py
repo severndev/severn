@@ -103,7 +103,10 @@ class RequirementsFile(Representable):
 
                 if not attrs["package"]:
                     warnings.warn(
-                        f"cannot resolve requirement at {self.path}:{i} -- probably unsupported format",
+                        (
+                            f"cannot resolve requirement at {self.path}:{i} "
+                            "-- probably unsupported format"
+                        ),
                         stacklevel=999,
                     )
                     continue
