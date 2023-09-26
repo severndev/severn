@@ -123,7 +123,7 @@ class Constraint:
         self._cfunc = comparator_mapping[self.comparator]
 
     @property
-    def as_tuple(self) -> Tuple[Union[int, float], ...]:
+    def as_tuple(self) -> Tuple[int, ...]:
         return (
             self.epoch,
             self.major,
@@ -180,8 +180,8 @@ class Constraint:
     def _fuzzy_callback(
         self,
         specificity: int,
-        constraint: Tuple[Union[int, float], ...],
-        requirement: Tuple[Union[int, float], ...],
+        constraint: Tuple[int, ...],
+        requirement: Tuple[int, ...],
     ) -> bool:
         return (
             requirement >= constraint
