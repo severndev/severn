@@ -81,6 +81,10 @@ def _fuzzy_comparator(
     return theirs >= ours and theirs[:specificity] == ours[:specificity]
 
 
+def _safe_int(value: Optional[str], default: int = MAX_VERSION) -> int:
+    return int(value) if value is not None else default
+
+
 @dataclass()
 class Constraint:
     comparator: str
@@ -118,12 +122,9 @@ class Constraint:
             raw_release = raw_release.replace("*", "0")
         release = [int(v) for v in raw_release.split(".")]
 
-        def safe_int(value: Optional[str], default: int = MAX_VERSION) -> int:
-            return int(value) if value is not None else default
-
         label = version["pre_l"]
         kwargs = (
-            {PRE_LABEL_MAPPING.get(label, label): safe_int(version["pre_n"])}
+            {PRE_LABEL_MAPPING.get(label, label): _safe_int(version["pre_n"])}
             if label
             else {}
         )
@@ -131,9 +132,9 @@ class Constraint:
         return cls(
             version["comparator"],
             release,
-            epoch=safe_int(version["epoch"], default=0),
-            post=safe_int(version["post"]),
-            dev=safe_int(version["dev"]),
+            epoch=_safe_int(version["epoch"], default=0),
+            post=_safe_int(version["post"]),
+            dev=_safe_int(version["dev"]),
             **kwargs,
         )
 
